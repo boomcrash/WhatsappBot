@@ -22,13 +22,13 @@ nltk.download('punkt')
 
 print("finalizado")
 
-import dload
-dload.git_clone("https://github.com/boomcrash/data_bot.git")
+#import dload
+#dload.git_clone("https://github.com/boomcrash/data_bot.git")
 
 import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 dir_path=dir_path.replace("\\","/")
-with open(dir_path+'/data_bot\data_bot-main/data.json','r') as file:
+with open('data.json') as file:
   database=json.load(file)
 
 
@@ -125,13 +125,13 @@ tflearn.init_graph(num_cores=8,gpu_memory_fraction=0.5)
 #neuronas de entrada(input layers)
 net=tflearn.input_data(shape=[None,len(x_train[0])])
 #neuronas intermedias(hidden layers)
-net=tflearn.fully_connected(net,int(len(x_train[0])*0.5),activation='Softmax')
-net=tflearn.fully_connected(net,int(len(x_train[0])*0.2),activation='Softmax')
-net=tflearn.dropout(net,0.5)
+net=tflearn.fully_connected(net,int(len(x_train[0])),activation='relu')
+net=tflearn.fully_connected(net,int(len(x_train[0])),activation='softplus')
+net=tflearn.dropout(net,0.7)
 #neuronas de salida(exit layers)
 net=tflearn.fully_connected(net,len(y_train[0]), activation='Softmax')
 #aplicamos regresion a nuestra red
-net=tflearn.regression(net, optimizer='adam',metric="accuracy",learning_rate=0.05, loss='categorical_crossentropy')
+net=tflearn.regression(net, optimizer='adam',metric="accuracy",learning_rate=0.001, loss='categorical_crossentropy')
 model =tflearn.DNN(net)
 #print(len(all_words))
 #moldeamos el modelo (n_epoch son las veces que se revisa la base de datos para obtener respuestas)
@@ -203,28 +203,13 @@ def response(texto):
 print("HABLA CONMIGO")
 bool=True
 
-from flask import Flask, request
-
-app = Flask(__name__)
-
-
-#NUEVO
-@app.route("/bot", methods=['POST'])
-
-def sms_reply():
-  # Fetch the message
-  mensaje = request.json
+def reply_msg(texto):
 
   try:
-    frase = mensaje["bot"]
-    frase = frase.lower()
+    frase = texto.lower()
 
     # responder TEXTO
     respuesta = response(frase)
     return respuesta
   except:
     return "No logre entender"
-
-
-while bool==True:
-  app.run(debug=True, host="0.0.0.0", port=3000)
